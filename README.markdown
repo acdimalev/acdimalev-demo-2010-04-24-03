@@ -1,8 +1,8 @@
-![screenshot](http://github.com/acdimalev/acdimalev-demo-2010-04-23-01/raw/master/screenshot.png)
+![screenshot](http://github.com/acdimalev/acdimalev-demo-2010-04-24-03/raw/master/screenshot.png)
 
-A C+SDL+Cairo demo.  A rotating square plane displayed with perspective projection.
+A C+SDL+Cairo demo.  Rotating outline model displayed with perspective projection.  Based on *acdimalev-demo-2010-04-23-01*.
 
-http://github.com/acdimalev/acdimalev-demo-2010-04-23-01
+http://github.com/acdimalev/acdimalev-demo-2010-04-24-03
 
 You must have Cairo and SDL installed to build this demo.
 

@@ -6,7 +6,6 @@
 int fps = 30;
 int w = 320;
 int h = 240;
-float scale = 1.0;
 
 typedef float vec[4];
 typedef float mat[4 * 4];
@@ -44,6 +43,14 @@ void mat_mul(mat m, mat n) {
   }
 }
 
+void vec_load(vec v, vec w) {
+  int i;
+
+  for (i = 0; i < 4; i = i + 1) {
+    v[i] = w[i];
+  }
+}
+
 void vec_mat_mul(vec v, mat m) {
   float x, y, z, w;
   x = v[0] * m[ 0] + v[1] * m[ 1] + v[2] * m[ 2] + v[3] * m[ 3];   
@@ -60,9 +67,35 @@ int main(int argc, char **argv) {
   Uint8 *keystate;
   Uint32 next_frame;
 
-  float aspect = 1.0 * w/h;
-
   mat matrix;
+
+  vec verts[] = {
+    -0.5, -0.5, -0.5,  1,
+     0.5, -0.5, -0.5,  1,
+    -0.5,  0.5, -0.5,  1,
+     0.5,  0.5, -0.5,  1,
+    -0.5, -0.5,  0.5,  1,
+     0.5, -0.5,  0.5,  1,
+    -0.5,  0.5,  0.5,  1,
+     0.5,  0.5,  0.5,  1
+    };
+
+  int lines[] = {
+    0, 1,
+    1, 3,
+    3, 2,
+    2, 0,
+
+    4, 5,
+    5, 7,
+    7, 6,
+    6, 4,
+
+    0, 4,
+    1, 5,
+    2, 6,
+    3, 7
+    };
 
   int running;
   float angle;
@@ -90,7 +123,7 @@ int main(int argc, char **argv) {
   cairo_scale(cr, 1, -1);
 
   // fixed scale
-  cairo_scale(cr, h/scale, h/scale);
+  cairo_scale(cr, h, h);
 
   /* Initialize Delay */
   next_frame = 1024.0 / fps;
@@ -101,7 +134,7 @@ int main(int argc, char **argv) {
     mat_p m = matrix;
     float a = M_PI / 4.0;
     mat_identity(m);
-    m[11] = 8;
+    m[11] = 4;
     m[ 5] =  cos(a); m[ 6] = -sin(a);
     m[ 9] =  sin(a); m[10] =  cos(a);
   }
@@ -118,6 +151,7 @@ int main(int argc, char **argv) {
     {
       mat m, n; vec v;
       float x, y, a = angle;
+      int line_count = sizeof(lines) / (2 * sizeof(int)), i;
 
       mat_identity(n);
       n[0] =  cos(a); n[1] = -sin(a);
@@ -126,29 +160,22 @@ int main(int argc, char **argv) {
       mat_load(m, matrix);
       mat_mul(m, n);
 
-      v[0] = -1; v[1] = -1; v[2] = 0; v[3] = 1;
-      vec_mat_mul(v, m);
-      x = v[0] / v[2]; y = v[1] / v[2];
-      cairo_move_to(cr, x, y);
+      for (i = 0; i < line_count; i = i + 1) {
+        vec_load(v, verts[lines[2*i+0]]);
+        vec_mat_mul(v, m);
+        x = v[0] / v[2]; y = v[1] / v[2];
+        cairo_move_to(cr, x, y);
 
-      v[0] =  1; v[1] = -1; v[2] = 0; v[3] = 1;
-      vec_mat_mul(v, m);
-      x = v[0] / v[2]; y = v[1] / v[2];
-      cairo_line_to(cr, x, y);
+        vec_load(v, verts[lines[2*i+1]]);
+        vec_mat_mul(v, m);
+        x = v[0] / v[2]; y = v[1] / v[2];
+        cairo_line_to(cr, x, y);
+      }
 
-      v[0] =  1; v[1] =  1; v[2] = 0; v[3] = 1;
-      vec_mat_mul(v, m);
-      x = v[0] / v[2]; y = v[1] / v[2];
-      cairo_line_to(cr, x, y);
-
-      v[0] = -1; v[1] =  1; v[2] = 0; v[3] = 1;
-      vec_mat_mul(v, m);
-      x = v[0] / v[2]; y = v[1] / v[2];
-      cairo_line_to(cr, x, y);
-
-      cairo_close_path(cr);
       cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-      cairo_fill(cr);
+      cairo_set_line_width(cr, 1/64.0);
+      cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+      cairo_stroke(cr);
     }
 
     /* Update Display */
