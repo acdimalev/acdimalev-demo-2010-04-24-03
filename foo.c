@@ -8,6 +8,7 @@ int w = 320;
 int h = 240;
 
 typedef float vec[4];
+typedef float *vec_p;
 typedef float mat[4 * 4];
 typedef float *mat_p;
 
@@ -69,33 +70,33 @@ int main(int argc, char **argv) {
 
   mat matrix;
 
-  vec verts[] = {
-    -0.5, -0.5, -0.5,  1,
-     0.5, -0.5, -0.5,  1,
-    -0.5,  0.5, -0.5,  1,
-     0.5,  0.5, -0.5,  1,
-    -0.5, -0.5,  0.5,  1,
-     0.5, -0.5,  0.5,  1,
-    -0.5,  0.5,  0.5,  1,
-     0.5,  0.5,  0.5,  1
+  vec verts[8] = {
+    -1/2.0, -1/2.0, -1/2.0, 1,
+     1/2.0, -1/2.0, -1/2.0, 1,
+    -1/2.0,  1/2.0, -1/2.0, 1,
+     1/2.0,  1/2.0, -1/2.0, 1,
+    -1/2.0, -1/2.0,  1/2.0, 1,
+     1/2.0, -1/2.0,  1/2.0, 1,
+    -1/2.0,  1/2.0,  1/2.0, 1,
+     1/2.0,  1/2.0,  1/2.0, 1
     };
 
-  int lines[] = {
-    0, 1,
-    1, 3,
-    3, 2,
-    2, 0,
+  vec_p lines[] = {
+    verts[0], verts[1],
+    verts[1], verts[3],
+    verts[3], verts[2],
+    verts[2], verts[0],
 
-    4, 5,
-    5, 7,
-    7, 6,
-    6, 4,
+    verts[4], verts[5],
+    verts[5], verts[7],
+    verts[7], verts[6],
+    verts[6], verts[4],
 
-    0, 4,
-    1, 5,
-    2, 6,
-    3, 7
-    };
+    verts[0], verts[4],
+    verts[1], verts[5],
+    verts[2], verts[6],
+    verts[3], verts[7],
+    0};
 
   int running;
   float angle;
@@ -151,7 +152,7 @@ int main(int argc, char **argv) {
     {
       mat m, n; vec v;
       float x, y, a = angle;
-      int line_count = sizeof(lines) / (2 * sizeof(int)), i;
+      int i;
 
       mat_identity(n);
       n[0] =  cos(a); n[1] = -sin(a);
@@ -160,16 +161,19 @@ int main(int argc, char **argv) {
       mat_load(m, matrix);
       mat_mul(m, n);
 
-      for (i = 0; i < line_count; i = i + 1) {
-        vec_load(v, verts[lines[2*i+0]]);
+      i = 0;
+      while (lines[i]) {
+        vec_load(v, lines[i+0]);
         vec_mat_mul(v, m);
         x = v[0] / v[2]; y = v[1] / v[2];
         cairo_move_to(cr, x, y);
 
-        vec_load(v, verts[lines[2*i+1]]);
+        vec_load(v, lines[i+1]);
         vec_mat_mul(v, m);
         x = v[0] / v[2]; y = v[1] / v[2];
         cairo_line_to(cr, x, y);
+
+        i = i + 2;
       }
 
       cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
